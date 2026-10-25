@@ -41,17 +41,7 @@ jobs:
       - name: Configure build
         shell: msys2 {0}
         run: |
-          SRC="$(dirname "$(find source -name meson.build -print -quit)")"
-          test -n "$SRC"
+          SRC="source/The-Powder-Toy-master"
+          test -f "$SRC/meson.build"
           meson setup build "$SRC" --buildtype=release -Dstatic=prebuilt
-
-      - name: Compile
-        shell: msys2 {0}
-        run: meson compile -C build
-
-      - name: Upload EXE
-        uses: actions/upload-artifact@v4
-        with:
-          name: The-Powder-Toy-Windows
-          path: build/**/*.exe
-          if-no-files-found: error
+          
