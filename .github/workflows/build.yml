@@ -1,0 +1,57 @@
+
+name: Build The Powder Toy for Windows
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Install build tools
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            git
+            unzip
+            zip
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-meson
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-python
+
+      - name: Checkout workflow files
+        uses: actions/checkout@v4
+
+      - name: Extract source ZIP
+        shell: msys2 {0}
+        run: |
+          mkdir -p source
+          unzip -q The-Powder-Toy-master.zip -d source
+          find source -name meson.build -print
+
+      - name: Configure build
+        shell: msys2 {0}
+        run: |
+          SRC="$(dirname "$(find source -name meson.build -print -quit)")"
+          test -n "$SRC"
+          meson setup build "$SRC" --buildtype=release -Dstatic=prebuilt
+
+      - name: Compile
+        shell: msys2 {0}
+        run: meson compile -C build
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: The-Powder-Toy-Windows
+          path: build/**/*.exe
+          if-no-files-found: error
